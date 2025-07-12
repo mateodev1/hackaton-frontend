@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+import type { Map as LeafletMap } from "leaflet"
 
 interface Shipment {
   client: string
@@ -41,7 +42,7 @@ const getMarkerColor = (status: string): string => {
 
 export default function VesselMap({ shipments }: MapComponentProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<any>(null)
+  const mapInstanceRef = useRef<LeafletMap | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
