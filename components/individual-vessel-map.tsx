@@ -152,7 +152,7 @@ export default function IndividualVesselMap({ shipment }: IndividualVesselMapPro
           [destLat, destLng]
         ]
         
-        const routeLine = L.polyline(routeCoords, {
+        L.polyline(routeCoords, {
           color: '#3b82f6',
           weight: 3,
           opacity: 0.8,

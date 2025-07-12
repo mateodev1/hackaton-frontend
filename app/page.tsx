@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Ship, Clock, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, MapPin, FileText, Upload } from "lucide-react"
+import { Ship, Clock, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, MapPin, FileText } from "lucide-react"
 import dynamic from "next/dynamic"
 import PDFUploadDrawer from "../components/pdf-upload-drawer"
 
@@ -208,8 +208,8 @@ export default function MaritimeDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsData.map((stat, index) => (
-            <Card key={index}>
+          {statsData.map((stat) => (
+            <Card key={stat.title}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -246,7 +246,7 @@ export default function MaritimeDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {shipmentsData.map((shipment, index) => (
+                  {shipmentsData.map((shipment) => (
                     <React.Fragment key={shipment.containerId}>
                       <TableRow>
                         <TableCell>
