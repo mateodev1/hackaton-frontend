@@ -5,12 +5,16 @@ import type { Map as LeafletMap } from "leaflet"
 
 interface Shipment {
   client: string
-  orderId: string
+  containerId: string
   vessel: string
   eta: string
   status: string
   transitTime: string
   lastPosition: string
+  originPort: string
+  destinationPort: string
+  originCoords: [number, number]
+  destinationCoords: [number, number]
 }
 
 interface MapComponentProps {
@@ -114,10 +118,11 @@ export default function VesselMap({ shipments }: MapComponentProps) {
                 <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">
                   ${shipment.vessel}
                 </h3>
-                <div style="font-size: 14px; color: #4b5563; line-height: 1.4;">
-                  <p style="margin: 4px 0;"><strong>Client:</strong> ${shipment.client}</p>
-                  <p style="margin: 4px 0;"><strong>Order ID:</strong> ${shipment.orderId}</p>
-                  <p style="margin: 4px 0;"><strong>Status:</strong> 
+                            <div style="font-size: 14px; color: #4b5563; line-height: 1.4;">
+              <p style="margin: 4px 0;"><strong>Client:</strong> ${shipment.client}</p>
+              <p style="margin: 4px 0;"><strong>Container ID:</strong> ${shipment.containerId}</p>
+              <p style="margin: 4px 0;"><strong>Ruta:</strong> ${shipment.originPort} → ${shipment.destinationPort}</p>
+              <p style="margin: 4px 0;"><strong>Status:</strong> 
                     <span style="
                       background-color: ${
                         shipment.status === "In Transit"
