@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BillOfLading {
+  id                 String   @id @default(cuid())
+  billOfLadingNumber String   @unique
+  bookingNumber      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Shipper information
+  shipperName    String
+  shipperAddress String
+
+  // Consignee information
+  consigneeName    String
+  consigneeAddress String
+
+  // Notify party
+  notifyPartyName    String?
+  notifyPartyAddress String?
+
+  // Forwarding agent
+  forwardingAgentName    String?
+  forwardingAgentAddress String?
+  forwardingAgentPhone   String?
+
+  // Vessel information
+  vesselName         String
+  vesselVoyageNumber String?
+  vesselFlag         String?
+
+  // Ports
+  portOfLoading   String
+  portOfDischarge String
+  placeOfReceipt  String?
+  placeOfDelivery String?
+
+  // Cargo information
+  containerNumber  String?
+  sealNumber       String?
+  packages         Int
+  cargoDescription String
+  grossWeightKg    Float?
+  volumeCbm        Float?
+
+  // Freight information
+  freightBasis   String?
+  freightRate    Float?
+  freightPrepaid Float?
+  freightCollect Float?
+  freightTotal   Float?
+
+  // Additional information
+  declaredValueUSD  Float?
+  numberOfOriginals Int?
+  shipmentDate      DateTime?
+
+  // Relationships
+  shipment Shipment?
+
+  @@map("bill_of_ladings")
+}
+
+model Shipment {
+  id             String         @id @default(cuid())
+  trackingNumber String         @unique
+  status         ShipmentStatus @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Shipment details
+  origin           String
+  destination      String
+  estimatedArrival DateTime?
+  actualArrival    DateTime?
+
+  // Cargo information
+  cargoType        String
+  cargoWeight      Float
+  cargoVolume      Float?
+  numberOfPackages Int
+
+  // Shipper and consignee
+  shipperName      String
+  shipperAddress   String
+  consigneeName    String
+  consigneeAddress String
+
+  // Vessel information
+  vesselName         String?
+  vesselVoyageNumber String?
+
+  // Financial information
+  declaredValue Float?
+  freightCost   Float?
+  insuranceCost Float?
+
+  // Status tracking
+  isDelivered   Boolean   @default(false)
+  deliveryDate  DateTime?
+  deliveryNotes String?
+
+  // Relationships
+  billOfLading   BillOfLading? @relation(fields: [billOfLadingId], references: [id])
+  billOfLadingId String?       @unique
+
+  @@map("shipments")
+}
+
+enum ShipmentStatus {
+  PENDING
+  IN_TRANSIT
+  ARRIVED
+  DELIVERED
+  CANCELLED
+}
