@@ -4,6 +4,25 @@ import pdf from "pdf-parse"
 import { createOpenAIModel, createBOLPrompt, createJSONParser } from "@/lib/langchain-config"
 import { BillOfLading } from "@/types/billOfLanding"
 import { prisma } from "@/lib/prisma"
+import { TrackingResponse } from "./type"
+
+export const getPositionShip = async (mmsi: string) => {
+    try {
+        console.log(process.env.NEXT_PUBLIC_API_URL)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ais/mt/${mmsi}/location/latest`)
+        const data: TrackingResponse = await res.json()
+        return {
+            success: true,
+            data: data.data.data
+        }
+    } catch (error) {
+        console.error("Error fetching ship positions:", error)
+        return {
+            success: false,
+            error: "Error al obtener las posiciones de los barcos"
+        }
+    }
+}
 
 export async function parsePDFAction(formData: FormData) {
     const file = formData.get("pdf") as File
@@ -60,6 +79,7 @@ export async function parsePDFAction(formData: FormData) {
 }
 
 export async function getAllBillsOfLading() {
+    // TODO:definir mmsi en prisma y en el tipo BillOfLading
     try {
         const billsOfLading = await prisma.billOfLading.findMany({
             orderBy: {
@@ -91,7 +111,8 @@ export async function getAllBillsOfLading() {
             vessel: {
                 name: bol.vesselName,
                 voyageNumber: bol.vesselVoyageNumber || undefined,
-                flag: bol.vesselFlag || undefined
+                flag: bol.vesselFlag || undefined,
+                mmsi: "636022201"
             },
             ports: {
                 portOfLoading: bol.portOfLoading,
@@ -119,6 +140,26 @@ export async function getAllBillsOfLading() {
             shipmentDate: bol.shipmentDate?.toISOString() || undefined
         }))
 
+        await Promise.all(formattedBOLs.map(async (bill) => {
+            if (bill.shipmap == null) {
+                // Manejar el caso donde shipmap es null
+                if (!bill.vessel.mmsi) return
+                const { data, success } = await getPositionShip(bill.vessel.mmsi)
+                if (success) {
+                    const shipMap = {
+                        latitude: data?.latitude!,
+                        longitude: data?.longitude!,
+                        course: data?.course!,
+                        speed: data?.speed!,
+                        draught: data?.originalResponse.draught!,
+                        navigationalStatus: data?.originalResponse.navigationalStatus!
+                    }
+                    bill.shipmap = shipMap
+                }
+            }
+        })
+        )
+        console.log('Formatted BOLs:', formattedBOLs) // Verifica los datos formateados
         return {
             success: true,
             data: formattedBOLs
@@ -131,6 +172,7 @@ export async function getAllBillsOfLading() {
             data: []
         }
     }
+
 }
 
 export async function extractTextFromPDF(formData: FormData) {

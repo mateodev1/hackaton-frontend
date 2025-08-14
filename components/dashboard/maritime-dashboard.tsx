@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Navbar from './navbar'
 import StatsCards from './stats-cards'
-import ShipmentsTable from './shipments-table'
 import BillsOfLadingTable from './bills-of-lading-table'
 import { STATS_DATA } from '@/lib/constants'
 import { useDrawer } from '@/hooks/use-drawer'
@@ -27,6 +26,7 @@ export default function MaritimeDashboard({ shipments }: MaritimeDashboardProps)
 				const result = await getAllBillsOfLading()
 				if (result.success) {
 					setBillsOfLading(result.data)
+					// Aquí puedes manejar la respuesta exitosa
 				}
 			} catch (error) {
 				console.error('Error fetching Bills of Lading:', error)
@@ -51,9 +51,9 @@ export default function MaritimeDashboard({ shipments }: MaritimeDashboardProps)
 				</div>
 
 				{/* Shipments Table */}
-				<div className="mt-8">
+				{/* <div className="mt-8">
 					<ShipmentsTable shipments={shipments} />
-				</div>
+				</div> */}
 			</div>
 
 			<PdfUploadDrawer isOpen={isOpen} close={close} />

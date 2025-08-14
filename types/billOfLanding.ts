@@ -22,6 +22,7 @@ export interface BillOfLading {
         name: string;                     // "MAERKS ALABAMA"
         voyageNumber?: string;            // "V/24"
         flag?: string;
+        mmsi?: string;                // "123456789"
     };
     ports: {
         portOfLoading: string;           // "Callao - Perú"
@@ -47,4 +48,14 @@ export interface BillOfLading {
     declaredValueUSD?: number;
     numberOfOriginals?: number;        // 3
     shipmentDate?: string;             // "2021-12-15"
+    shipmap?: ShipMap
+}
+
+interface ShipMap {
+    latitude: number
+    longitude: number
+    course: number
+    speed: number
+    draught: number
+    navigationalStatus: string
 }

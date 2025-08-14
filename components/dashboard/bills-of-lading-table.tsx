@@ -1,18 +1,49 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import { Badge } from '@/components/ui/badge'
 import { FileText, Ship, MapPin, Package, DollarSign, Calendar, Eye } from 'lucide-react'
 import { BillOfLading } from '@/types/billOfLanding'
-
+import React from 'react'
+import { DivIcon } from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+function ShipIcon({ course }: { course: number }) {
+	return new DivIcon({
+		html: `
+      <div style="transform: rotate(${course}deg); transform-origin: center;">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L4 20L12 17L20 20L12 2Z" fill="#2563eb" stroke="#1e40af" strokeWidth="2"/>
+        </svg>
+      </div>
+    `,
+		className: 'ship-marker',
+		iconSize: [32, 32],
+		iconAnchor: [16, 16]
+	})
+}
 interface BillsOfLadingTableProps {
 	billsOfLading: BillOfLading[]
 }
+function MapUpdater({ latitude, longitude }: { latitude: number; longitude: number }) {
+	const map = useMap()
 
+	useEffect(() => {
+		map.setView([latitude, longitude], map.getZoom())
+	}, [latitude, longitude, map])
+
+	return null
+}
 export default function BillsOfLadingTable({ billsOfLading }: BillsOfLadingTableProps) {
+	console.log('Bills of Lading:', billsOfLading) // Verifica los datos recibidos
 	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+	const [isClient, setIsClient] = useState(false)
+
+	useEffect(() => {
+		setIsClient(true)
+	}, [])
 
 	const toggleRow = (id: string) => {
 		const newExpanded = new Set(expandedRows)
@@ -36,7 +67,7 @@ export default function BillsOfLadingTable({ billsOfLading }: BillsOfLadingTable
 			currency: 'USD'
 		}).format(amount)
 	}
-
+	const mapRef = useRef<any>(null)
 	return (
 		<Card>
 			<CardHeader>
@@ -65,8 +96,8 @@ export default function BillsOfLadingTable({ billsOfLading }: BillsOfLadingTable
 					</TableHeader>
 					<TableBody>
 						{billsOfLading.map((bol) => (
-							<>
-								<TableRow key={bol.billOfLadingNumber} className="cursor-pointer hover:bg-gray-50">
+							<React.Fragment key={bol.billOfLadingNumber}>
+								<TableRow className="cursor-pointer hover:bg-gray-50">
 									<TableCell className="font-medium">{bol.billOfLadingNumber}</TableCell>
 									<TableCell>
 										<div className="max-w-xs truncate" title={bol.shipper.name}>
@@ -122,127 +153,22 @@ export default function BillsOfLadingTable({ billsOfLading }: BillsOfLadingTable
 								{expandedRows.has(bol.billOfLadingNumber) && (
 									<TableRow>
 										<TableCell colSpan={9} className="bg-gray-50 p-4">
-											<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-												{/* Información básica */}
-												<div className="space-y-2">
-													<h4 className="font-semibold text-gray-900">Información Básica</h4>
-													<div className="space-y-1 text-sm">
-														<div>
-															<span className="font-medium">Booking:</span> {bol.bookingNumber || 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Contenedor:</span> {bol.cargo.containerNumber || 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Sello:</span> {bol.cargo.sealNumber || 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Originales:</span> {bol.numberOfOriginals || 'N/A'}
-														</div>
-													</div>
-												</div>
-
-												{/* Detalles de carga */}
-												<div className="space-y-2">
-													<h4 className="font-semibold text-gray-900">Detalles de Carga</h4>
-													<div className="space-y-1 text-sm">
-														<div>
-															<span className="font-medium">Descripción:</span> {bol.cargo.description}
-														</div>
-														<div>
-															<span className="font-medium">Peso:</span> {bol.cargo.grossWeightKg ? `${bol.cargo.grossWeightKg} kg` : 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Volumen:</span> {bol.cargo.volumeCbm ? `${bol.cargo.volumeCbm} m³` : 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Valor declarado:</span> {formatCurrency(bol.declaredValueUSD)}
-														</div>
-													</div>
-												</div>
-
-												{/* Información de flete */}
-												<div className="space-y-2">
-													<h4 className="font-semibold text-gray-900">Información de Flete</h4>
-													<div className="space-y-1 text-sm">
-														<div>
-															<span className="font-medium">Prepagado:</span> {formatCurrency(bol.freight?.prepaid)}
-														</div>
-														<div>
-															<span className="font-medium">Por cobrar:</span> {formatCurrency(bol.freight?.collect)}
-														</div>
-														<div>
-															<span className="font-medium">Base:</span> {bol.freight?.basis || 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Tarifa:</span> {formatCurrency(bol.freight?.rate)}
-														</div>
-													</div>
-												</div>
-
-												{/* Direcciones */}
-												<div className="space-y-2">
-													<h4 className="font-semibold text-gray-900">Direcciones</h4>
-													<div className="space-y-1 text-sm">
-														<div>
-															<span className="font-medium">Remitente:</span> {bol.shipper.address}
-														</div>
-														<div>
-															<span className="font-medium">Consignatario:</span> {bol.consignee.address}
-														</div>
-														{bol.notifyParty && (
-															<div>
-																<span className="font-medium">Notificar a:</span> {bol.notifyParty.address}
-															</div>
-														)}
-													</div>
-												</div>
-
-												{/* Información del buque */}
-												<div className="space-y-2">
-													<h4 className="font-semibold text-gray-900">Buque</h4>
-													<div className="space-y-1 text-sm">
-														<div>
-															<span className="font-medium">Viaje:</span> {bol.vessel.voyageNumber || 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Bandera:</span> {bol.vessel.flag || 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Lugar recepción:</span> {bol.ports.placeOfReceipt || 'N/A'}
-														</div>
-														<div>
-															<span className="font-medium">Lugar entrega:</span> {bol.ports.placeOfDelivery || 'N/A'}
-														</div>
-													</div>
-												</div>
-
-												{/* Agente de carga */}
-												{bol.forwardingAgent && (
-													<div className="space-y-2">
-														<h4 className="font-semibold text-gray-900">Agente de Carga</h4>
-														<div className="space-y-1 text-sm">
-															<div>
-																<span className="font-medium">Nombre:</span> {bol.forwardingAgent.name}
-															</div>
-															{bol.forwardingAgent.address && (
-																<div>
-																	<span className="font-medium">Dirección:</span> {bol.forwardingAgent.address}
-																</div>
-															)}
-															{bol.forwardingAgent.phone && (
-																<div>
-																	<span className="font-medium">Teléfono:</span> {bol.forwardingAgent.phone}
-																</div>
-															)}
-														</div>
-													</div>
+											<div className="w-full h-96 rounded-lg overflow-hidden border border-border">
+												{isClient && (
+													<MapContainer center={[bol.shipmap?.latitude || 0, bol.shipmap?.longitude || 0]} zoom={13} style={{ height: '100%', width: '100%' }} ref={mapRef}>
+														<TileLayer
+															attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+															url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+														/>
+														<MapUpdater latitude={bol.shipmap?.latitude || 0} longitude={bol.shipmap?.longitude || 0} />
+														<Marker position={[bol.shipmap?.latitude || 0, bol.shipmap?.longitude || 0]} icon={ShipIcon({ course: bol.shipmap?.course || 0 })} />
+													</MapContainer>
 												)}
 											</div>
 										</TableCell>
 									</TableRow>
 								)}
-							</>
+							</React.Fragment>
 						))}
 					</TableBody>
 				</Table>
